@@ -1,0 +1,10 @@
+%sql
+select cast(date as date) day_of_month, tmax, tmin, h.value , 
+   date_format(date,"E") day_of_week,
+   IF(isnull(h.value), 'N', 'Holiday') holiday,
+   IF(isnull(h.value) and date_format(date,"E") in ("Mon",'Tue','Wed','Thu','Fri'),
+'Workday', 'N') workday
+from weather_temp w LEFT OUTER JOIN holidays_temp h
+ON (w.date = h.value)
+where station='USW00094728'
+order by day_of_month
