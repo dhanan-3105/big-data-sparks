@@ -1,0 +1,43 @@
+%spark
+
+//if you created the smallest BDC environment (2 OCPU) and just finished the previous lab, this step will take 6 minutes or so.
+//this is because when you ran the last lab, you started a hive/tez session which will remain open for a few minutes and will use/block resources needed by spark
+//after a few minutes, hive/tez will close its session and this spark code will run.  You could go to the Jobs tab and manually abort the hive session, or just relax and wait.
+
+
+
+//a previous tutorial placed the csv file into your Object Store citibike container
+//notice the use of the swift://CONTAINER.default/ syntax
+val Container = "bdcsce"
+val Directory = "citibike"
+
+sqlContext.setConf("spark.sql.shuffle.partitions", "4")
+
+var df: org.apache.spark.sql.DataFrame = null
+
+if( "swift://bdcsce.default".contains("swift")  ){
+         println("Running on OCI-C");
+   //We will use the bdfs (alluxio) cached file system to access our object store data...
+   df = sqlContext.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema","true").load("swift://bdcsce.default/"+Directory+"/raw/201612-citibike-tripdata.csv")
+} else {
+         println("Running on OCI");
+   df = sqlContext.read.format("com.databricks.spark.csv").option("header", "true").load("swift://bdcsce.default/"+Directory+"/raw/201612-citibike-tripdata.csv")
+}
+
+
+// If you get this error message:
+// java.lang.IllegalStateException: Cannot call methods on a stopped SparkContext.
+// Then go to the Settings tab, then click on Notebook.  Then restart the Notebook.  This will restart your SparkContext
+
+
+println("Here is the schema detected from the CSV")
+df.printSchema()
+println("..")
+
+println("# of rows: %s".format(
+  df.count() 
+)) 
+println("..")
+
+df.createOrReplaceTempView("bike_trips_temp")
+println("don
