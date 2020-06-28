@@ -1,0 +1,16 @@
+%spark
+
+//case class Holiday(hdate: String)
+//val hdf = Seq(Holiday("2016-12-24"), Holiday("2016-12-25"), Holiday("2016-12-26"), Holiday("2016-12-31")).toDS()
+val hdf = Seq("2016-12-24", "2016-12-25", "2016-12-26", "2016-12-31").toDS()
+hdf.show()
+
+println("..")
+
+println("# of rows: %s".format(
+  hdf.count() 
+)) 
+println("..")
+
+hdf.createOrReplaceTempView("holidays_temp")
+println("done")
