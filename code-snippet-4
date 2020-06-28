@@ -1,0 +1,19 @@
+
+create table bike_trips_parquet
+stored as parquet
+as select `Trip Duration` TRIPDURATION,
+`Start Time` STARTTIME,
+`Stop Time` STOPTIME,
+`Start Station ID` STARTSTATIONID,
+`Start Station Name` STARTSTATIONNAME,
+`Start Station Latitude` STARTSTATIONLATITUDE,
+`Start Station Longitude` STARTSTATIONLONGITUDE,
+`End Station ID` ENDSTATIONID,
+`End Station Name` ENDSTATIONNAME,
+`End Station Latitude` ENDSTATIONLATITUDE,
+`End Station Longitude` ENDSTATIONLONGITUDE,
+`Bike ID` BIKEID,
+`User Type` USERTYPE,
+`Birth Year` BIRTHYEAR,
+`Gender` GENDER
+ from bike_trips_temp
