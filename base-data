@@ -1,0 +1,54 @@
+%sh
+
+# the very first time you run a shell interpreter with zeppelin 0.70, the first few characters of output seem to get jumbled.
+# since this paragraph is typically the first thing run, here is a silly workaround
+echo "                                       "
+sleep 5
+echo "                                       "
+# end silly workaround
+
+export HADOOP_ROOT_LOGGER=WARN
+
+
+# Set http proxy if required
+#export http_proxy=
+
+CONTAINER=bdcsce
+DIRECTORY=citibike
+FILENAME=201612-citibike-tripdata
+
+echo "Object Storage Container Name        :" $CONTAINER
+echo "Directory Name        :" $DIRECTORY
+echo "Data Set name (remove .zip or .csv)  :" $FILENAME
+echo "-----------------------------------------------------------------"
+
+test -e $DIRECTORY || mkdir $DIRECTORY
+cd $DIRECTORY
+rm $FILENAME*
+
+echo "Downloading $FILENAME.zip.  This may take a few minutes."
+# https://www.citibikenyc.com/system-data links us to https://s3.amazonaws.com/tripdata/
+wget -nv https://s3.amazonaws.com/tripdata/$FILENAME.zip 
+echo "Extracting the csv from the zip file"
+unzip $FILENAME.zip
+#head -3 $FILENAME.csv
+echo "Creating a new version of the file without header information named _nh.csv"
+sed '1d' $FILENAME.csv > $FILENAME.nh.csv
+ls -l
+
+echo "Storing both versions of the csv files to Object Storage.  This may take a few minutes."
+# we use the hadoop swift:// or oci:// driver to interact with the Object Store.
+echo "List the directory. directory should be empty or missing"
+hadoop fs -ls swift://bdcsce.default/$DIRECTORY 
+echo "Make the raw directory in Object Store"
+hadoop fs -mkdir -p swift://bdcsce.default/$DIRECTORY/raw 
+echo "Copy First File to Object Store. May take a minute"
+hadoop fs -put $FILENAME.csv swift://bdcsce.default/$DIRECTORY/raw/$FILENAME.csv 
+echo "Make the modified directory in Object Store"
+hadoop fs -mkdir -p swift://bdcsce.default/$DIRECTORY/modified 
+echo "Copy Second File to Object Store.  May take a minute"
+hadoop fs -put $FILENAME.nh.csv swift://bdcsce.default/$DIRECTORY/modified/$FILENAME.nh.csv 
+echo "Validate by listing the 2 csv files that got copied to Object Store (you should see 2 .csv files)"
+hadoop fs -ls swift://bdcsce.default/$DIRECTORY/raw 
+hadoop fs -ls swift://bdcsce.default/$DIRECTORY/modified
+echo "done"
