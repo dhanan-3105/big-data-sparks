@@ -1,0 +1,37 @@
+%sql
+/* if bike_trips_temp is not found, then you need to go back and run Tutorial 4 Working with Spark Interpreter. */
+SELECT  `Start Station Name` STARTSTATIONNAME,
+`Start Station ID` STARTSTATIONID,
+ cast(`Start Station Latitude` as string) STARTSTATIONLATITUDE,
+ cast(`Start Station Longitude` as string) STARTSTATIONLONGITUDE,
+`End Station ID` ENDSTATIONID,
+`End Station Name` ENDSTATIONNAME,
+ cast(`End Station Latitude` as string) ENDSTATIONLATITUDE,
+ cast(`End Station Longitude` as string) ENDSTATIONLONGITUDE,
+`Start Time` STARTTIME,
+`Stop Time` STOPTIME,
+ cast(`Start Time` as date) STARTDATE,
+ cast(date_format(`Start Time`,"H") as integer) STARTHOUR,
+ date_format(date,"E") STARTDAY_OF_WEEK,
+ IF(isnull(h.value), 'Not_Holiday', 'Holiday') HOLIDAY,
+ IF(isnull(h.value) and date_format(date,"E") in ("Mon",'Tue','Wed','Thu','Fri'), 'Workday', 'Not_Workday') WORKDAY,
+`Trip Duration` TRIPDURATION,
+`Bike ID` BIKEID,
+`User Type` USERTYPE,
+`Birth Year` BIRTHYEAR,
+ 2017-`Birth Year` RIDERAGE,
+`Gender` GENDER_CODE,
+ case when gender=1 then 'Male' when gender=2 then 'Female' else 'unknown' end GENDER ,
+ w.AWND AVERAGEWIND, 
+ w.PRCP PRECIPITATION, 
+  w.SNOW SNOW, 
+ w.SNWD SNOW_ON_GROUND, 
+w.TMAX MAXTEMPERATURE, 
+ w.TMIN MINTEMPERATURE
+FROM weather_temp w
+  LEFT OUTER JOIN holidays_temp h
+    ON (w.date = h.value),
+  bike_trips_temp t
+WHERE to_date(w.date) = to_date(t.`Start Time`)
+AND w.station='USW00094728'
+limit 20
