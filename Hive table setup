@@ -1,0 +1,45 @@
+%sh
+DIRECTORY=citibike
+FILENAME=201612-citibike-tripdata
+
+echo "Data Set name (remove .zip or .csv)  :" $FILENAME
+echo "-----------------------------------------------------------------"
+echo ".."
+echo "If this paragraph hangs on the SELECT count(*) FROM bike_trips, see the next paragraph for an explanation/resolution...."
+echo ".."
+
+cd $DIRECTORY
+
+# run hive
+hive <<EOF
+DROP TABLE IF EXISTS bike_trips;
+
+CREATE TABLE bike_trips ( 
+TripDuration int,
+StartTime timestamp,
+StopTime timestamp,
+StartStationID string,
+StartStationName string,
+StartStationLatitude string,
+StartStationLongitude string,
+EndStationID string,
+EndStationName string,
+EndStationLatitude string,
+EndStationLongitude string,
+BikeID int,
+UserType string,
+BirthYear int, 
+Gender int
+) 
+ROW FORMAT delimited 
+FIELDS TERMINATED BY ',' ;
+
+LOAD DATA LOCAL INPATH '$FILENAME.nh.csv' into table bike_trips;
+
+create table bike_trips_small as select * from bike_trips limit 50000;
+
+SELECT count(*) FROM bike_trips;
+
+exit;
+
+EOF
